@@ -1,28 +1,43 @@
 package com.springauthorization.Controllers;
 
+import com.springauthorization.Exceptions.InvalidCredentialException;
+import com.springauthorization.Services.UserService;
+import com.springauthorization.User.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class LoginController {
 
+   @Autowired
+   UserService userService;
+
    @GetMapping("/")
-   public String home(ModelMap map) {
-     return "home";
+   public String home(Model model) {
+      model.addAttribute("user", new User());
+      return "home";
    }
 
-   @GetMapping("/login")
-   public String showLogin(ModelMap map) {
-      return "login";
-   }
+   @PostMapping("/")
+   public ModelAndView submitLogin(@ModelAttribute User user) throws InvalidCredentialException {
 
-   @PostMapping("/login")
-   public String submitLogin(@RequestParam String username,
-                             @RequestParam String password) {
-      // TODO
-      return "success";
+      User checkUser;
+
+      ModelAndView mav = new ModelAndView();
+
+      checkUser = userService.getUserByName(user.getUsername());
+      String password = user.getPassword();
+
+      if (password.equals(checkUser.getPassword())) {
+         mav.setViewName("success");
+         mav.addObject("name", checkUser.getUsername());
+      } else {
+         throw new InvalidCredentialException(user.getUsername());
+      }
+
+      return mav;
    }
 }

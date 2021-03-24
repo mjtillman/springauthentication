@@ -1,6 +1,6 @@
 package com.springauthorization.Services;
 
-import com.springauthorization.Exceptions.UserNotFoundException;
+import com.springauthorization.Exceptions.InvalidCredentialException;
 import com.springauthorization.Repository.UserRepository;
 import com.springauthorization.User.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,21 +18,17 @@ public class UserService {
       return userRepo.findAll();
    }
 
-   public User getUserByName(String name) {
-      return userRepo.findByName(name);
-   }
+   public User getUserByName(String name) throws InvalidCredentialException {
+      Optional<User> foundUser = Optional.ofNullable(userRepo.findByUsername(name));
 
-   public User getUserById(Long id) {
-      Optional<User> foundUser = userRepo.findById(id);
-
-      if(!foundUser.isPresent()) {
-         throw new UserNotFoundException();
+      if (!foundUser.isPresent()) {
+         throw new InvalidCredentialException(name);
       }
 
-      return (foundUser.get());
+      return foundUser.get();
    }
 
-   public void updateUser(User updateUser) {
-      userRepo.save(updateUser);
+   public User updateUser(User updateUser) {
+      return userRepo.save(updateUser);
    }
 }
